@@ -67,6 +67,10 @@ public:
     { return Vec3(x * r, y * r, z * r); }
     Vec3 operator * (const Vec3 &v) const
     { return Vec3(x * v.x, y * v.y, z * v.z); }
+    Vec3 operator / (const T& r) const
+    { return Vec3(x / r, y / r, z / r); }
+    Vec3 operator / (const Vec3& v) const
+    { return Vec3(x / v.x, y / v.y, z / v.z); }
     T dotProduct(const Vec3<T> &v) const
     { return x * v.x + y * v.y + z * v.z; }
     Vec3& operator /= (const T &r)

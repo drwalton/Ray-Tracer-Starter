@@ -1,4 +1,4 @@
-// A practical implementation of the ray tracing algorithm.
+﻿// A practical implementation of the ray tracing algorithm.
 
 #include "geometry.h"
 #include "SDL.h" 
@@ -63,10 +63,55 @@ void putpixel(SDL_Surface* surface, int x, int y, Uint32 pixel)
     }
 }
 
+struct Ray {
+    Vec3f o, d;
+    Ray(const Vec3f& o, const Vec3f& d) : o(o), d(d) {}
+};
+
+struct Sphere {
+    Vec3f c;
+    double r;
+    Sphere(const Vec3f& c, double r) : c(c), r(r) {}
+    Vec3f getNormal(const Vec3f& pi) const { return (pi - c) / r; }
+
+    // Solve t^2*d.d+2*t*(o-p).d+(o-p).(o-p)-R^2=0​
+    bool intersect(const Ray& ray, double& t) const {
+        const Vec3f o = ray.o;
+        const Vec3f d = ray.d;
+        const Vec3f oc = o - c;
+        const double b = 2 * oc.dotProduct(d);
+        const double c = oc.dotProduct(oc) - r * r;
+        double disc = b * b - 4 * c; // a=1 as ray is normalised​
+        if (disc < 1e-4) return false; // ray misses sphere​
+        disc = sqrt(disc);
+        const double t0 = -b - disc;
+        const double t1 = -b + disc;
+        t = (t0 < t1) ? t0 : t1; // two intersections on sphere, set t to shortest​
+        return true;
+    }
+};
+
+// method to ensure colours don’t go out of 8 bit range in RGB​
+void clamp255(Vec3f& col) {
+    col.x = (col.x > 255) ? 255 : (col.x < 0) ? 0 : col.x;
+    col.y = (col.y > 255) ? 255 : (col.y < 0) ? 0 : col.y;
+    col.z = (col.z > 255) ? 255 : (col.z < 0) ? 0 : col.z;
+}
+
 int main(int argc, char **argv)
 {
     // initialise SDL2
     init();
+
+    const Vec3f white(255, 255, 255);
+    const Vec3f black(0, 0, 0);
+    const Vec3f red(255, 0, 0);
+
+    const Sphere sphere(Vec3f(screen->w * 0.5, screen->h * 0.5, 50), 50);
+    const Sphere light(Vec3f(0, 0, 50), 1);
+
+    double t;
+    Vec3f pix_col(black);
 
     SDL_Event e;
     bool running = true;
@@ -77,7 +122,25 @@ int main(int argc, char **argv)
         // clear back buffer, pixel data on surface and depth buffer (as movement)
         SDL_FillRect(screen, nullptr, SDL_MapRGB(screen->format, 0, 0, 0));
         SDL_RenderClear(renderer);
-        
+
+        for (int y = 0; y < screen->h; ++y) {
+            for (int x = 0; x < screen->w; ++x) {
+                pix_col = black;
+                const Ray ray(Vec3f(x, y, 0), Vec3f(0, 0, 1));
+                if (sphere.intersect(ray, t)) {
+                    const Vec3f pi = ray.o + ray.d * t;
+                    Vec3f L = light.c - pi;
+                    Vec3f N = sphere.getNormal(pi);
+                    Vec3f Ln = L.normalize();
+                    double dt = Ln.dotProduct(N.normalize());
+                    pix_col = (red + white * dt) * 0.5;
+                    clamp255(pix_col);
+                }
+                Uint32 colour = SDL_MapRGB(screen->format, pix_col.x, pix_col.y, pix_col.z);
+                putpixel(screen, x, y, colour);
+            }
+        }
+
         auto t_end = std::chrono::high_resolution_clock::now();
         auto passedTime = std::chrono::duration<double, std::milli>(t_end - t_start).count();
         std::cerr << "Frame render time:  " << passedTime << " ms" << std::endl;
