@@ -64,19 +64,20 @@ void putpixel(SDL_Surface* surface, int x, int y, Uint32 pixel)
 }
 
 struct Ray {
-    Vec3f o, d;
-    Ray(const Vec3f& o, const Vec3f& d) : o(o), d(d) {}
+    Point3f o;
+    Vec3f d;
+    Ray(const Point3f& o, const Vec3f& d) : o(o), d(d) {}
 };
 
 struct Sphere {
-    Vec3f c;
+    Point3f c;
     double r;
-    Sphere(const Vec3f& c, double r) : c(c), r(r) {}
+    Sphere(const Point3f& c, double r) : c(c), r(r) {}
     Vec3f getNormal(const Vec3f& pi) const { return (pi - c) / r; }
 
     // Solve t^2*d.d+2*t*(o-p).d+(o-p).(o-p)-R^2=0​
     bool intersect(const Ray& ray, double& t) const {
-        const Vec3f o = ray.o;
+        const Point3f o = ray.o;
         const Vec3f d = ray.d;
         const Vec3f oc = o - c;
         const double b = 2 * oc.dotProduct(d);
@@ -103,15 +104,15 @@ int main(int argc, char **argv)
     // initialise SDL2
     init();
 
-    const Vec3f white(255, 255, 255);
-    const Vec3f black(0, 0, 0);
-    const Vec3f red(255, 0, 0);
+    const Colour white(255, 255, 255);
+    const Colour black(0, 0, 0);
+    const Colour red(255, 0, 0);
 
     const Sphere sphere(Vec3f(screen->w * 0.5, screen->h * 0.5, 50), 50);
     const Sphere light(Vec3f(0, 0, 50), 1);
 
     double t;
-    Vec3f pix_col(black);
+    Colour pix_col(black);
 
     SDL_Event e;
     bool running = true;
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
         for (int y = 0; y < screen->h; ++y) {
             for (int x = 0; x < screen->w; ++x) {
                 pix_col = black;
-                const Ray ray(Vec3f(x, y, 0), Vec3f(0, 0, 1));
+                const Ray ray(Point3f(x, y, 0), Vec3f(0, 0, 1));
                 if (sphere.intersect(ray, t)) {
                     const Vec3f pi = ray.o + ray.d * t;
                     Vec3f L = light.c - pi;
