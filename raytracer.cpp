@@ -15,7 +15,7 @@ void init() {
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_Window* window = SDL_CreateWindow(
-        "Software Rasteriser",
+        "Software Ray Tracer",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         640,
