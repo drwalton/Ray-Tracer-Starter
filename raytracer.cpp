@@ -77,18 +77,25 @@ struct Sphere {
 
     // Solve t^2*d.d+2*t*(o-p).d+(o-p).(o-p)-R^2=0​
     bool intersect(const Ray& ray, double& t) const {
-        const Point3f o = ray.o;
-        const Vec3f d = ray.d;
-        const Vec3f oc = o - c;
-        const double b = 2 * oc.dotProduct(d);
-        const double c = oc.dotProduct(oc) - r * r;
-        double disc = b * b - 4 * c; // a=1 as ray is normalised​
-        if (disc < 1e-4) return false; // ray misses sphere​
-        disc = sqrt(disc);
-        const double t0 = -b - disc;
-        const double t1 = -b + disc;
-        t = (t0 < t1) ? t0 : t1; // two intersections on sphere, set t to shortest​
-        return true;
+        // ****** YOUR WORK HERE ******
+        // 
+        // Implement your ray-sphere intersection here!
+        // This should find out whether intersection occurs at all - if not it should return false.
+        // If intersection does occur, it should return true, after setting "t" to the parameter 
+        // of the ray.
+
+        //Steps:
+        // First find the discriminant of the quadratic equation (b^2 - 4ac)
+        // If this is less than zero, then the equation has no solutions, and the ray
+        // misses the sphere. Return False.
+        // Otherwise, complete solving the quardratic equation as usual. 
+        // This gives two solutions for t.
+        // If both are negative, the intersection doesn't count as it's behind the start of the ray.
+        // Return false.
+        // Otherwise, set t the smallest non-negative root and return True.
+
+        // Right now the code just always says "No Intersection" - replace this with working code!
+        return false;
     }
 };
 
